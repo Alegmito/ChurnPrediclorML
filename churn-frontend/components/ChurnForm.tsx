@@ -3,7 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { predictChurn } from "../lib/api";
 import { getRiskLevel } from "../lib/risk";
-import type { PredictionResult } from "../lib/types";
+import type { ChurnPayload, PredictionResult } from "../lib/types";
 
 const initialForm = {
   tenure: "12",
@@ -38,7 +38,7 @@ export default function ChurnForm() {
     setResult(null);
 
     try {
-      const payload: any = {
+      const payload: ChurnPayload = {
         tenure: Number(form.tenure),
         MonthlyCharges: Number(form.MonthlyCharges),
         Contract: form.Contract,

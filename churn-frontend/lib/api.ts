@@ -2,7 +2,7 @@ import { ChurnPayload, HealthResponse as HealthResponse, HistoryItem, Prediction
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-function parseApiError(body: any, status: number): string {
+function parseApiError(body: Record<string, unknown>, status: number): string {
     if (!body) {
         return `Request ailed with status ${status}`;
     }
@@ -19,7 +19,8 @@ function parseApiError(body: any, status: number): string {
 
     if (body.detail && Array.isArray(body.detail)) {
         return body.detail
-            .map((item: any) => item.msg || JSON.stringify(item))
+            .map((item: Record<string, unknown>) =>
+              typeof item.msg == 'string' ? item.msg : JSON.stringify(item))
             .join("; ")
     }
 
