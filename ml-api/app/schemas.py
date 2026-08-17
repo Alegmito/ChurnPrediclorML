@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 ContractType = Literal[
     "Month-to-month",
-    "One Year",
-    "Two Year"
+    "One year",
+    "Two year"
 ]
 
 PaymentMethodType = Literal[

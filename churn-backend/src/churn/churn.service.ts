@@ -1,5 +1,6 @@
-import { HttpException, Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
+import { HttpException, Injectable, InternalServerErrorException, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
+import { readFile, writeFile } from "node:fs/promises";
 import { PredictChurnDto } from "src/dto/predict-churn.dto";
 import { PredictionLoggerService } from "src/logger/prediction-logger.service";
 
@@ -12,6 +13,44 @@ export class ChurnService {
     constructor(
         private readonly predictionLogger: PredictionLoggerService
     ) {}
+
+    async getHistory(limit = 20) {
+        try {
+            const content = await readFile(this.predictionLogger.getLogFile(), 'utf-8');
+
+            const logs = content
+            .trim()
+            .split('\n')
+            .reverse()
+            .map((line) => JSON.parse(line))
+            .filter((log) => log.event === 'prediction_success')
+            .slice(0, limit);
+
+            return {
+                success: true,
+                data: logs,
+            };
+        } catch {
+            return {
+                success: false,
+                data: [],
+            };
+        }
+    }
+
+    async resetHistory() {
+        try {
+            await writeFile(this.predictionLogger.getLogFile(), '', 'utf-8');
+            return {
+                success: true,
+                message: 'History cleared'
+            }
+        }
+        catch(error) {
+            this.logger.error('Failed to clear history', error as Error);
+            throw new InternalServerErrorException('Failed to clear prediction history');
+        }
+    }
 
     async health() {
         try {
@@ -78,6 +117,7 @@ export class ChurnService {
             await this.predictionLogger.log({
                 requestId,
                 event: 'prediction_success',
+                request: dto,
                 response: body,
             });
 

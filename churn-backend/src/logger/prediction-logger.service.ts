@@ -6,10 +6,14 @@ import { join } from "path";
 export class PredictionLoggerService implements OnModuleInit {
     private readonly logger = new Logger(PredictionLoggerService.name)
     private readonly logDir = join(process.cwd(), 'logs')
-    private readonly logFile = join(this.logDir, 'prediction.jsonl')
+    private readonly logFile = join(this.logDir, 'predictions.jsonl')
 
     async onModuleInit() {
         mkdir(this.logDir, { recursive: true });
+    }
+
+    getLogFile() {
+        return this.logFile;
     }
 
     async log(entry: Record<string, unknown>) {

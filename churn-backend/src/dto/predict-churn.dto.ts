@@ -25,7 +25,7 @@ export class PredictChurnDto {
         'Electronic check',
         'Mailed check',
         'Bank transfer (automatic)',
-        'Credic card (automatic)',
+        'Credit card (automatic)',
     ])
     PaymentMethod!: string;
 }

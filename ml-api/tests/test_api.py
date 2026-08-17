@@ -48,7 +48,7 @@ def test_predict_with_missing_total_charges():
         "tenure": 0.0,
         "MonthlyCharges": 20.0,
         "TotalCharges": None,
-        "Contract": "Month-to-month",
+        "Contract": "One year",
         "PaymentMethod": "Electronic check",
     }
 
