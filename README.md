@@ -1,4 +1,7 @@
 # Customer Churn Prediction
+<img width="611" height="1004" alt="image" src="https://github.com/user-attachments/assets/349ab31b-331b-4bd0-b3ff-74c3662863a9" />
+
+<img width="881" height="1283" alt="image" src="https://github.com/user-attachments/assets/109017da-ae4b-43ea-ac71-d14c6912f378" />
 
 A full-stack machine-learning application that predicts whether a telecom customer is likely to churn. It combines a **scikit-learn** model served by a **FastAPI** service, a **NestJS** API gateway, and a **Next.js** dashboard — wired together with **Docker Compose** and a **GitHub Actions** CI pipeline.
 
