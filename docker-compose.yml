@@ -1,0 +1,47 @@
+services:
+  ml-api:
+    build:
+      context: ./ml-api
+    container_name: churn-ml-api
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  churn-backend:
+    build:
+      context: ./churn-backend
+    container_name: churn-backend
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: "4000"
+      ML_API_URL: http://ml-api:8000
+      FRONTEND_URL: http://localhost:3000
+    depends_on:
+      ml-api:
+        condition: service_healthy
+    volumes:
+      - churn-backend-logs:/app/logs
+    restart: unless-stopped
+
+  churn-frontend:
+    build:
+      context: ./churn-frontend
+      args:
+        # Inlined at build time; points at the gateway's host-mapped port.
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    container_name: churn-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - churn-backend
+    restart: unless-stopped
+
+volumes:
+  churn-backend-logs:

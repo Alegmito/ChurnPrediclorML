@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, dev, ai-dev]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ml-api:
+    name: ML API (train + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: ml-api/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download dataset (public IBM mirror)
+        run: |
+          mkdir -p data/Downloaded
+          curl -fsSL -o data/Downloaded/WA_Fn-UseC_-Telco-Customer-Churn.csv \
+            https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv
+
+      - name: Train model
+        run: python scripts/model_train.py
+
+      - name: Run tests
+        run: pytest -v
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: churn-model
+          path: ml-api/models
+          if-no-files-found: error
+
+  backend:
+    name: Backend gateway
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: churn-backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: churn-backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: churn-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: churn-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  docker:
+    name: Docker images
+    needs: [ml-api, backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download model artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: churn-model
+          path: ml-api/models
+
+      - name: Build all images
+        run: docker compose build
