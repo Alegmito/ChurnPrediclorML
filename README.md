@@ -220,8 +220,10 @@ Run everything at once with the CI workflow (below) or:
 (cd ml-api && .venv/Scripts/python -m pytest)   # Windows; use bin/ on macOS/Linux
 (cd churn-backend && npm test)
 (cd churn-frontend && npm test)
+
 ```
 
+You can also run `npm run check` to check linter and build project
 > The ML API tests load the trained model, so run [Train the model](#train-the-model) before `pytest`.
 
 ## CI/CD
